@@ -11,7 +11,7 @@ class SaveAndVisual:
         self.epoch_indices = []  # 存储epoch索引
         self._init_visualization()
         self._init_model_dir()
-
+        self.loop_count=0
     def _init_model_dir(self):
         """初始化模型保存目录"""
         os.makedirs(self.model_dir, exist_ok=True)
@@ -52,7 +52,10 @@ class SaveAndVisual:
         """更新训练损失可视化"""
         self.epoch_losses.append(loss)
         self.epoch_indices.append(epoch)
-        
+        self.loop_count+=1
+        if(self.loop_count%10==0):
+            self.loop_count=0
+            print(f"  训练损失（第{epoch+1}轮）：{loss:.4f}")
         # 更新图像数据
         self.line.set_data(self.epoch_indices, self.epoch_losses)
         self.ax.relim()  # 重新计算坐标轴范围
