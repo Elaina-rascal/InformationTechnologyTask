@@ -1,4 +1,4 @@
 .~*
 model/
-*.png
+model/*.png
 *.pyc
