@@ -25,15 +25,18 @@ class SaveAndVisual:
         self.ax.set_title("Training Loss (per Epoch)")
         self.line, = self.ax.plot([], [], label="Epoch Loss")
         self.ax.legend()
-
+        self.min_loss=float('inf')
     def loadModel(self, model:torch.nn.Module, optimizer, device):
         """加载已保存的模型"""
         model_path = os.path.join(self.model_dir, 'best_transformer.pth')
+        self.model=model
+        self.optimizer=optimizer
         if os.path.exists(model_path):
             checkpoint = torch.load(model_path, map_location=device, weights_only=True)
             model.load_state_dict(checkpoint['model_state_dict'])
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             print(f"发现现有模型，其损失为: {checkpoint['loss']:.4f}")
+            self.min_loss=checkpoint['loss']
             return checkpoint['loss']
         return float('inf')
 
@@ -46,7 +49,7 @@ class SaveAndVisual:
             'optimizer_state_dict': optimizer.state_dict(),
             'loss': loss,
         }, model_path)
-        print(f"  保存最佳模型（损失：{loss:.4f})")
+        # print(f"  保存最佳模型（损失：{loss:.4f})")
 
     def updateVisualization(self, epoch, loss):
         """更新训练损失可视化"""
@@ -60,6 +63,9 @@ class SaveAndVisual:
         self.line.set_data(self.epoch_indices, self.epoch_losses)
         self.ax.relim()  # 重新计算坐标轴范围
         self.ax.autoscale_view()  # 自动调整视图
+        if(loss<self.min_loss ):
+            self.min_loss=loss
+            self.saveModel(self.model,self.optimizer,epoch,loss)
         plt.draw()
         plt.pause(0.01)
 

@@ -13,8 +13,9 @@ def train():
     loss_fn=torch.nn.MSELoss()
     optimizer=torch.optim.Adam(model.parameters(),lr=0.001)
 
-    visual=SaveAndVisual(model_dir=model_path, loss_img_path='loss_curve.png')
+    visual=SaveAndVisual(model_dir=model_path, loss_img_path=model_path+'loss_curve.png')
     num_epoch=600
+    visual.loadModel(model,optimizer,device)
     for epoch in range(num_epoch):
         model.train()
         inputs=train_inputs
