@@ -1,10 +1,7 @@
 version: '3'
 services:
   pytorch-service:
-    # build:
-    #   context: ..
-    #   dockerfile: .devcontainer/Dockerfile
-    image: elainasuki/other:pytorch
+    image: elainasuki/other:pytorch_cpu
     container_name: information-cpu-container
     environment:
       - DISPLAY=${DISPLAY}
@@ -14,21 +11,13 @@ services:
       - TERM=xterm-256color
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./..:/home/Elaina/pytorch
-      - /dev:/dev
-    network_mode: host
-    pid: "host" # 添加 pid 命名空间共享
-    ipc: "host" # 添加 ipc 命名空间共享    
-    privileged: true
+      - ./..:/pytorch/
+    entrypoint: [ '/bin/bash' ]
     stdin_open: true
     tty: true
-    user: "Elaina"
     # runtime: "nvidia"
-    working_dir: "/home/Elaina/pytorch" # 指定默认工作目录
+    working_dir: "/pytorch" # 指定默认工作目录
   gpu-service:
-    # build:
-    #   context: ..
-    #   dockerfile: .devcontainer/Dockerfile
     image: elainasuki/other:pytorch_gpu
     container_name: information-task-container
     environment:
@@ -39,14 +28,9 @@ services:
       - TERM=xterm-256color
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./..:/home/Elaina/pytorch
-      - /dev:/dev
-    network_mode: host
-    pid: "host" # 添加 pid 命名空间共享
-    ipc: "host" # 添加 ipc 命名空间共享    
-    privileged: true
-    stdin_open: true
-    tty: true
-    user: "Elaina"
+      - ./..:/pytorch
     runtime: "nvidia"
-    working_dir: "/home/Elaina/pytorch" # 指定默认工作目录
+    tty: true
+    stdin_open: true
+    entrypoint: [ '/bin/bash' ]
+    working_dir: "/pytorch" # 指定默认工作目录

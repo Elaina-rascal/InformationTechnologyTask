@@ -17,13 +17,13 @@ def LoadTask2Data(file_path)->tuple[torch.Tensor, torch.Tensor]:
     outputs_tensor = torch.tensor(outputs, dtype=torch.float32)
     return inputs_tensor, outputs_tensor
 class DataBatcher:
-    def __init__(self, file_path: str, val_ratio: float = 0.2, batch_size: int = 32, shuffle: bool = True):
+    def __init__(self, file_path: str, val_ratio: float = 0.2, batch_size: int = 32, shuffle: bool = True,device: torch.device = torch.device('cpu')):
         """
         数据批处理工具类，支持划分验证集和生成批次数据
         """
         self.batch_size = batch_size
         self.shuffle = shuffle
-        
+        self.device = device
         # 加载原始数据
         self.inputs, self.outputs = LoadTask2Data(file_path)
         
@@ -81,16 +81,16 @@ class DataBatcher:
     
     def getTrainBatches(self):
         """获取训练集批次张量 (输入, 输出)"""
-        return self.train_inputs, self.train_outputs
+        return self.train_inputs.to(self.device), self.train_outputs.to(self.device)
     
     def getValBatches(self):
         """获取验证集批次张量 (输入, 输出)"""
-        return self.val_inputs, self.val_outputs
+        return self.val_inputs.to(self.device), self.val_outputs.to(self.device)
     
 
 if __name__ == "__main__":
     # 测试代码
-    file_path = os.path.join("/home/Elaina/pytorch/data", "task2.xlsx")
+    file_path = os.path.join("/pytorch/data", "task2.xlsx")
     
     # 初始化批处理工具
     batcher = DataBatcher(file_path, val_ratio=0.2, batch_size=16)    
