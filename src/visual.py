@@ -66,3 +66,12 @@ class SaveAndVisual:
         self.ax.set_title("Training Loss (Final)")
         plt.savefig(self.loss_img_path)
         plt.show()
+if __name__ == "__main__":
+    plt.figure(figsize=(6, 4))
+    plt.plot([1, 2, 3, 4], [1, 4, 9, 16], 'r-', label='test')
+    plt.xlabel('X')
+    plt.ylabel('Y')
+    plt.title('GUI')
+    plt.legend()
+    plt.grid(True)
+    plt.show()  # 弹出窗口显示测试图
