@@ -1,5 +1,5 @@
 {
-    "name": "pytorch-container",
+    "name": "information-task-container",
     "dockerComposeFile": "docker-compose.yml",
     "service": "gpu-service",
     "workspaceFolder": "/home/Elaina/pytorch",

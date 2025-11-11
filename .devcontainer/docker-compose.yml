@@ -5,7 +5,7 @@ services:
     #   context: ..
     #   dockerfile: .devcontainer/Dockerfile
     image: elainasuki/other:pytorch
-    container_name: pytorch-container
+    container_name: information-cpu-container
     environment:
       - DISPLAY=${DISPLAY}
       - NVIDIA_VISIBLE_DEVICES=all
@@ -30,7 +30,7 @@ services:
     #   context: ..
     #   dockerfile: .devcontainer/Dockerfile
     image: elainasuki/other:pytorch_gpu
-    container_name: pytorch-gpu-container
+    container_name: information-task-container
     environment:
       - DISPLAY=${DISPLAY}
       - NVIDIA_VISIBLE_DEVICES=all
