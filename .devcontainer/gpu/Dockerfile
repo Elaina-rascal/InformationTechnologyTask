@@ -38,6 +38,7 @@ RUN pip3 install --no-cache-dir --upgrade pip \
     && pip3 install --no-cache-dir --ignore-installed sympy \
     && pip3 install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu121 \
     && rm -rf $PIP_CACHE_DIR /tmp/* /var/tmp/*
-
+#安装pandas 和openpyxl
+RUN pip3 install pandas openpyxl
 # 5. 配置ROS 2环境
 RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
