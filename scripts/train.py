@@ -1,5 +1,5 @@
 from visual import *
-from model import *
+from mymodel import *
 from load_data import *
 def train():
     device=torch.device('cuda' if torch.cuda.is_available() else'cpu')

@@ -1,5 +1,5 @@
 from visual import *
-from model import *
+from mymodel import *
 from load_data import *
 def infer():
     #初始化参数
