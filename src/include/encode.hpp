@@ -1,7 +1,7 @@
 #include <cstdint>
 #include <string>
 #include <vector>
-#define DEBUG true
+#define DEBUG false
 #if DEBUG
 #include <fmt/core.h>
 #include <fmt/ranges.h>
@@ -12,9 +12,9 @@ class LZEncoder_t
 public:
     LZEncoder_t(int window_size, int lookahead_buffer_size)
     {
-        // 11位偏移最大支持2047，窗口大小不超过此值
+        // 11位偏移最大支持2047（2^11-1），窗口大小不超过此值
         _window_size = std::min(window_size, 2048);
-        // 最大匹配长度仍为18（4位存储+3）
+        // 最大匹配长度18（4位存储+3，0~15对应3~18）
         _lookahead_buffer_size = std::min(lookahead_buffer_size, 18);
     }
 
@@ -22,64 +22,71 @@ public:
     {
         std::vector<uint8_t> output;
 
-        // 拼接逻辑保持不变
+        // 拼接输入字符串，用@分隔
         std::string concatenated;
         for (size_t i = 0; i < input.size(); ++i)
         {
             if (i > 0)
-            {
                 concatenated += '@';
-            }
             concatenated += input[i];
         }
 #if DEBUG
         fmt::print("拼接后的字符串: {}\n", concatenated);
 #endif
 
-        // LZ77编码（使用标志位区分）
         size_t pos = 0;
         const size_t input_len = concatenated.size();
         while (pos < input_len)
         {
-            size_t match_offset = 0;
-            size_t match_length = 0;
+            uint16_t match_offset = 0; // 11位偏移（0~2047）
+            uint8_t match_length = 0;  // 实际长度（3~18）
             size_t start_window = (pos >= _window_size) ? (pos - _window_size) : 0;
             size_t end_window = pos;
 
+            // 查找窗口内最长匹配
             for (size_t i = start_window; i < end_window; ++i)
             {
-                size_t length = 0;
-                while (length < static_cast<size_t>(_lookahead_buffer_size) &&
+                uint8_t length = 0;
+                // 限制匹配长度不超过前瞻缓冲区和输入边界
+                while (length < _lookahead_buffer_size &&
                        pos + length < input_len &&
                        concatenated[i + length] == concatenated[pos + length])
                 {
                     ++length;
                 }
+                // 优先选更长的匹配，长度相同时选偏移更小的
                 if (length > match_length || (length == match_length && (pos - i) < match_offset))
                 {
                     match_length = length;
-                    match_offset = pos - i;
+                    match_offset = pos - i; // 计算偏移（当前位置 - 匹配起始位置）
                 }
             }
 
-            // 11位偏移（0~2047）+ 标志位区分
+            // 若找到有效匹配（长度≥3，偏移≤2047），编码为偏移+长度
             if (match_length >= _min_match_length && match_length <= _max_match_length && match_offset <= _max_offset)
             {
-                // 第一个字节：最高位0（标志位）+ 偏移高3位
-                uint8_t byte1 = static_cast<uint8_t>((match_offset >> 8) & 0x7F); // 0x7F确保最高位为0
-                // 第二个字节：偏移低8位
-                uint8_t byte2 = static_cast<uint8_t>(match_offset & 0xFF);
-                // 重新打包：byte1保持标志位，byte2高4位存长度
-                byte2 = static_cast<uint8_t>(((match_length - _min_match_length) << 4) | (byte2 & 0x0F));
+                uint8_t len_encoded = match_length - _min_match_length; // 编码长度（0~15）
+
+                // 第一字节：标志位0（最高位） + 偏移高7位（bit10~bit4）
+                uint8_t byte1 = (match_offset >> 4) & 0x7F; // 0x7F确保最高位为0
+
+                // 第二字节：偏移低4位（bit3~bit0） + 编码长度（bit7~bit4）
+                uint8_t byte2 = ((match_offset & 0x0F) << 4) | (len_encoded & 0x0F);
+
                 output.push_back(byte1);
                 output.push_back(byte2);
                 pos += match_length;
             }
+            // 单字符编码（两字节，标志位1）
             else
             {
-                // 单字符标志：最高位1（0x80），低7位无意义
-                output.push_back(0x80);
-                output.push_back(static_cast<uint8_t>(concatenated[pos]));
+                // 第一字节：标志位1（最高位），低7位填充0（保留位）
+                uint8_t byte1 = 0x80; // 0x80 = 1000 0000（标志位置1）
+                // 第二字节：存储字符的ASCII值
+                uint8_t byte2 = static_cast<uint8_t>(concatenated[pos]);
+
+                output.push_back(byte1);
+                output.push_back(byte2);
                 ++pos;
             }
         }
@@ -93,37 +100,37 @@ public:
         size_t pos = 0;
         const size_t input_len = input.size();
 
-        // LZ77解码（基于标志位判断）
+        // 按两字节一组解码
         while (pos + 1 < input_len)
         {
             uint8_t byte1 = input[pos];
             uint8_t byte2 = input[pos + 1];
             pos += 2;
 
-            // 最高位为1：单字符
-            if ((byte1 & 0x80) != 0)
+            // 标志位为1：单字符（第二字节存储字符）
+            if (byte1 & 0x80)
             {
                 concatenated += static_cast<char>(byte2);
             }
-            // 最高位为0：偏移+长度编码
+            // 标志位为0：偏移+长度编码
             else
             {
-                // 解析11位偏移：byte1低7位 + byte2低4位
-                size_t match_offset = static_cast<size_t>((byte1 & 0x7F) << 8) | (byte2 & 0x0F);
-                // 解析4位长度（+3还原）
-                size_t match_length = static_cast<size_t>((byte2 >> 4) & 0x0F) + _min_match_length;
+                // 解析11位偏移：byte1低7位（偏移高7位） + byte2高4位（偏移低4位）
+                uint16_t match_offset = ((byte1 & 0x7F) << 4) | ((byte2 >> 4) & 0x0F);
 
-                // 容错处理：无效偏移或长度时按单字符处理
+                // 解析4位长度：byte2低4位 + 3（还原实际长度）
+                uint8_t match_length = (byte2 & 0x0F) + _min_match_length;
+
+                // 容错处理：无效偏移/长度时跳过（避免越界）
                 if (match_offset == 0 || match_offset > concatenated.size() ||
                     match_length < _min_match_length || match_length > _max_match_length)
                 {
-                    concatenated += static_cast<char>(byte2);
                     continue;
                 }
 
-                // 正确复制匹配内容（支持自引用）
-                size_t start_pos = concatenated.size() - match_offset;
-                for (size_t i = 0; i < match_length; ++i)
+                // 复制匹配内容（支持自引用，如循环字符串）
+                auto start_pos = concatenated.size() - match_offset;
+                for (uint8_t i = 0; i < match_length; ++i)
                 {
                     concatenated += concatenated[start_pos + i];
                 }
@@ -133,7 +140,7 @@ public:
         fmt::print("解码后拼接的字符串: {}\n", concatenated);
 #endif
 
-        // 分割逻辑保持不变
+        // 分割回原始字符串数组（按@分割）
         std::vector<std::string> output;
         std::string current;
         for (char c : concatenated)
@@ -148,7 +155,7 @@ public:
                 current += c;
             }
         }
-        output.push_back(current);
+        output.push_back(current); // 添加最后一个字符串
 
         return output;
     }
@@ -156,9 +163,9 @@ public:
 private:
     uint32_t _window_size = 0;
     uint32_t _lookahead_buffer_size = 0;
-    uint8_t const _min_match_length = 3;
-    uint32_t const _max_offset = 2047; // 11位最大偏移（2^11 - 1）
-    uint32_t const _max_match_length = 18;
+    const uint8_t _min_match_length = 3;   // 最小匹配长度（低于此值用单字符编码）
+    const uint32_t _max_offset = 2047;     // 11位最大偏移（2^11 - 1）
+    const uint32_t _max_match_length = 18; // 最大匹配长度（4位编码+3）
 };
 #include <algorithm>
 
