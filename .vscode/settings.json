@@ -1,4 +1,8 @@
 {
     "python.analysis.typeCheckingMode": "standard",
-    "cmake.sourceDirectory": "/pytorch/src"
+    "cmake.sourceDirectory": "/pytorch/src",
+    "clangd.arguments": [
+        "--header-insertion=never",
+        "--query-driver=/usr/bin/g*"
+    ]
 }
