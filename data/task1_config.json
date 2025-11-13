@@ -45,5 +45,5 @@
     "crc_block_size": 2048,
     "crc_polynomial": 7,
     "lookahead_buffer_size": 15,
-    "window_size": 200
+    "window_size": 400
 }

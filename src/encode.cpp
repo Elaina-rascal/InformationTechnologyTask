@@ -28,7 +28,7 @@ int main()
     std::filesystem::create_directories(bin_dir);
 
     rapidcsv::Document doc(csv_path);
-    const int window_size = 200;
+    const int window_size = 400;
     const int lookahead_buffer_size = 15;
     const int crc_polynomial = 0x07;
     const size_t crc_block_size = 2048;
