@@ -17,8 +17,12 @@ int main()
 
     auto encode = LZEncoder_t(20, 8);
     auto output = encode.encode(row);
-    fmt::print("压缩后字节流{}: \n", output);
+    // fmt::print("压缩后字节流{}: \n", output);
     auto decode_output = encode.decode(output);
+    auto hamming = CRCCoder_t();
+    auto encoded_hamming = hamming.encode(output);
+    auto decoded_hamming = hamming.decode(encoded_hamming);
     fmt::print("解压后字符串向量{}: \n", decode_output);
+
     return 0;
 }

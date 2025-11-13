@@ -160,5 +160,111 @@ private:
     uint32_t const _max_offset = 2047; // 11位最大偏移（2^11 - 1）
     uint32_t const _max_match_length = 18;
 };
+#include <algorithm>
 
+class CRCCoder_t
+{
+public:
+    // 构造函数：传入CRC多项式和块大小（默认2048字节）
+    CRCCoder_t(uint8_t polynomial = 0x07, size_t block_size = 2048)
+    {
+        _m_block_size = block_size;
+        _m_polynomial = polynomial;
+        // 确保块大小至少为1
+        if (_m_block_size == 0)
+        {
+            _m_block_size = 1;
+        }
+    }
+
+    // 编码：输入原始数据，返回带CRC校验的数据
+    std::vector<uint8_t> encode(const std::vector<uint8_t> &input) const
+    {
+        std::vector<uint8_t> output;
+        if (input.empty())
+            return output;
+
+        // 预分配空间：原始数据 + 校验块数（每块1字节）
+        size_t total_blocks = (input.size() + _m_block_size - 1) / _m_block_size;
+        output.reserve(input.size() + total_blocks);
+
+        size_t pos = 0;
+        const uint8_t *data = input.data();
+
+        while (pos < input.size())
+        {
+            size_t current_len = std::min(_m_block_size, input.size() - pos);
+            // 复制数据块
+            output.insert(output.end(), data + pos, data + pos + current_len);
+            // 计算并附加CRC
+            output.push_back(calculate_crc(data + pos, current_len));
+            pos += current_len;
+        }
+
+        return output;
+    }
+
+    // 解码：输入带CRC的数据，验证通过返回原始数据，失败返回空
+    std::vector<uint8_t> decode(const std::vector<uint8_t> &input) const
+    {
+        std::vector<uint8_t> output;
+        if (input.empty())
+            return output;
+
+        size_t pos = 0;
+        const uint8_t *data = input.data();
+        size_t total_len = input.size();
+
+        while (pos < total_len)
+        {
+            // 计算当前块的最大可能数据长度（剩余数据减1字节CRC）
+            size_t remaining = total_len - pos;
+            if (remaining < 1)
+                return {}; // 数据不完整（缺少CRC）
+
+            size_t current_data_len = std::min(_m_block_size, remaining - 1);
+            uint8_t received_crc = data[pos + current_data_len];
+
+            // 验证CRC
+            uint8_t calculated_crc = calculate_crc(data + pos, current_data_len);
+            if (calculated_crc != received_crc)
+            {
+                return {}; // CRC校验失败
+            }
+
+            // 提取有效数据
+            output.insert(output.end(), data + pos, data + pos + current_data_len);
+            pos += current_data_len + 1; // 跳过数据和CRC
+        }
+
+        return output;
+    }
+
+private:
+    uint8_t _m_polynomial; // CRC多项式
+    size_t _m_block_size;  // 分块大小
+
+    // 实时计算8位CRC（无表法）
+    uint8_t calculate_crc(const uint8_t *data, size_t len) const
+    {
+        uint8_t crc = 0x00;
+        for (size_t i = 0; i < len; ++i)
+        {
+            crc ^= data[i];
+            for (int bit = 0; bit < 8; ++bit)
+            {
+                if (crc & 0x80)
+                {
+                    crc = (crc << 1) ^ _m_polynomial;
+                }
+                else
+                {
+                    crc <<= 1;
+                }
+                crc &= 0xFF; // 保持8位
+            }
+        }
+        return crc;
+    }
+};
 // 因为是字符串,数据肯定小于128 可以直接用最高位做标志位，用最高位表示是单字符还是偏移+长度
