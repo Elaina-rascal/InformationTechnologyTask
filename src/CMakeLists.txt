@@ -9,9 +9,9 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
 
 set(exe1_name "encode")
 # find_package(Threads REQUIRED)
-
+find_package(fmt REQUIRED)
 #新建可执行文件
 add_executable(${exe1_name} encode.cpp)
 target_include_directories(${exe1_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
 #添加链接库
-target_link_libraries(${exe1_name} )
+target_link_libraries(${exe1_name} fmt::fmt)

@@ -1,4 +1,6 @@
 #include "rapidcsv.h"
+#include <fmt/core.h>
+#include <fmt/ranges.h>
 #include <string>
 #include <vector>
 int main()
@@ -8,9 +10,8 @@ int main()
     rapidcsv::Document doc(csv_path);
 
     std::vector<std::string> row = doc.GetRow<std::string>(0);
-    for (size_t i = 0; i < row.size(); ++i)
-    {
-        printf("第 %d 行: %s\n", static_cast<int>(i + 1), row[i].c_str());
-    }
+    fmt::print("第零行{}: \n", row);
+    row = doc.GetRow<std::string>(1);
+    fmt::print("第一行{}: \n", row);
     return 0;
 }
