@@ -13,8 +13,6 @@
                 "augustocdias.tasks-shell-input",
                 "ms-python.python",
                 "njpwerner.autodocstring",
-                "vadimcn.vscode-lldb",
-                "llvm-vs-code-extensions.lldb-dap",
                 "ms-python.vscode-pylance",
                 "ms-toolsai.jupyter",
                 "ms-toolsai.vscode-jupyter-slideshow"

@@ -1,4 +1,7 @@
 .~*
-model/
-*.png
+!model/.gitkeep
 *.pyc
+build/
+.cache/
+data/task1.json
+*.bin
