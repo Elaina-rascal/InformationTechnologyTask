@@ -11,7 +11,10 @@ class LZEncoder_t
 {
 public:
     LZEncoder_t(int window_size, int lookahead_buffer_size)
-        : _window_size(window_size), _lookahead_buffer_size(lookahead_buffer_size) {}
+    {
+        _window_size = std::min(window_size, 4096);
+        _lookahead_buffer_size = std::min(lookahead_buffer_size, 18);
+    }
 
     std::vector<uint8_t> encode(const std::vector<std::string> &input)
     {
@@ -38,8 +41,8 @@ public:
         {
             size_t match_offset = 0;
             size_t match_length = 0;
-
-            size_t start_window = (pos >= static_cast<size_t>(_window_size)) ? (pos - _window_size) : 0;
+            // 左侧窗口搜索
+            size_t start_window = (pos >= _window_size) ? (pos - _window_size) : 0;
             size_t end_window = pos;
 
             for (size_t i = start_window; i < end_window; ++i)
@@ -49,9 +52,10 @@ public:
                        pos + length < input_len &&
                        concatenated[i + length] == concatenated[pos + length])
                 {
+
                     ++length;
                 }
-                if (length > match_length)
+                if (length > match_length || (length == match_length && (pos - i) < match_offset))
                 {
                     match_length = length;
                     match_offset = pos - i;
@@ -59,10 +63,10 @@ public:
             }
 
             // 限制偏移（12位）和长度（4位+3）
-            if (match_length >= 3 && match_length <= 18 && match_offset <= 4095)
+            if (match_length >= _min_match_length && match_length <= _max_match_length && match_offset <= _max_offset)
             {
-                output.push_back(static_cast<uint8_t>(match_offset >> 4));
-                output.push_back(static_cast<uint8_t>(((match_offset & 0x0F) << 4) | (match_length - 3)));
+                output.push_back((match_offset >> 4) & 0xFF);
+                output.push_back(static_cast<uint8_t>(((match_offset & 0x0F) << 4) | (match_length - _min_match_length)));
                 pos += match_length;
             }
             else
@@ -138,6 +142,9 @@ public:
     }
 
 private:
-    int _window_size;
-    int _lookahead_buffer_size;
+    uint32_t _window_size = 0;
+    uint32_t _lookahead_buffer_size = 0;
+    uint8_t const _min_match_length = 3;
+    uint32_t const _max_offset = 4095;
+    uint32_t const _max_match_length = 18;
 };
