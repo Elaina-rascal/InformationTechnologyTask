@@ -1,4 +1,4 @@
 .~*
-model/
-model/*.png
+!model/.gitkeep
 *.pyc
+build/
