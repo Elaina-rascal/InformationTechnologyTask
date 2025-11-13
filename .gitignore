@@ -4,3 +4,4 @@
 build/
 .cache/
 data/task1.json
+*.bin

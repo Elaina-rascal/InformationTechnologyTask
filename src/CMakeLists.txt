@@ -12,6 +12,9 @@ set(exe1_name "encode")
 find_package(fmt REQUIRED)
 #新建可执行文件
 add_executable(${exe1_name} encode.cpp)
+add_executable(decode decode.cpp)
 target_include_directories(${exe1_name} PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(decode PRIVATE ${CMAKE_SOURCE_DIR}/include)
 #添加链接库
 target_link_libraries(${exe1_name} fmt::fmt)
+target_link_libraries(decode fmt::fmt)
