@@ -6,7 +6,7 @@ def infer():
     model_path='/pytorch/model/best_transformer.pth'
     device=torch.device('cuda' if torch.cuda.is_available() else'cpu')
     #加载模型
-    model=MLPModel(input_size=8,hidden_size=24,output_size=2,device=device)
+    model=MLPresidual(input_size=8,hidden_size=20,output_size=2,device=device)
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True)['model_state_dict'])
     #加载数据
     data_path='/pytorch/data/task2.xlsx'
