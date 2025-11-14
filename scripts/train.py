@@ -3,7 +3,7 @@ from mymodel import *
 from load_data import *
 def train():
     device=torch.device('cuda' if torch.cuda.is_available() else'cpu')
-    model=MLPresidual(input_size=8,hidden_size=20,output_size=2,device=device)
+    model=MLPresidual(input_size=8,hidden_size=24,output_size=2,dropout=0.1,device=device)
     # model=MLPAttention(input_size=8,attention_hidden_size=8,hidden_size=32,output_size=2,device=device)
     data_path='/pytorch/data/task2.xlsx'
     model_path='/pytorch/model/'
