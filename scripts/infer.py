@@ -10,13 +10,13 @@ def infer():
     model.load_state_dict(torch.load(model_path, map_location=device, weights_only=True)['model_state_dict'])
     #加载数据
     data_path='/pytorch/data/task2.xlsx'
-    batcher = DataBatcher(file_path=data_path, val_ratio=0.2, batch_size=16,device=device)
+    batcher = DataBatcher(file_path=data_path, val_ratio=0.2,device=device)
     val_inputs, val_outputs = batcher.getValBatches()
     #进行推理
     output=model(val_inputs)
     #取第1batch的结果比较
-    print("真实值:", val_outputs[0])
-    print("预测值:", output[0])
+    print("真实值:", val_outputs[:5])
+    print("预测值:", output[:5])
     # 计算均方误差
     loss_fn=torch.nn.MSELoss()
     loss=loss_fn(output,val_outputs)

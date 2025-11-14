@@ -7,7 +7,7 @@ def train():
     # model=MLPAttention(input_size=8,attention_hidden_size=8,hidden_size=32,output_size=2,device=device)
     data_path='/pytorch/data/task2.xlsx'
     model_path='/pytorch/model/'
-    batcher = DataBatcher(file_path=data_path, val_ratio=0.2, batch_size=16,device=device)
+    batcher = DataBatcher(file_path=data_path, val_ratio=0.2,device=device)
     train_inputs, train_outputs = batcher.getTrainBatches()
     val_inputs, val_outputs = batcher.getValBatches()
     #平方损失
