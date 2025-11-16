@@ -12,7 +12,7 @@ namespace fs = std::filesystem;
 using json = nlohmann::json;
 
 // 辅助函数：从文件读取二进制数据
-std::vector<uint8_t> read_binary(const std::string &path)
+std::vector<uint8_t> LoadBinaryFile(const std::string &path)
 {
     if (!fs::exists(path))
     {
@@ -80,11 +80,11 @@ int main()
 
         // 3.1 读取二进制编码文件
         const std::string bin_path = bin_dir + bin_filename.get<std::string>();
-        std::vector<uint8_t> crc_encoded = read_binary(bin_path);
+        std::vector<uint8_t> crc_encoded = LoadBinaryFile(bin_path);
 
         // 3.2 解码流程（先CRC解码，再LZ解码）
-        std::vector<uint8_t> lz_encoded = CRC.decode(crc_encoded);
-        std::vector<std::string> decoded_data = LZ.decode(lz_encoded);
+        std::vector<uint8_t> lz_encoded = CRC.Decode(crc_encoded);
+        std::vector<std::string> decoded_data = LZ.Decode(lz_encoded);
 
         // 3.3 获取原始数据
         std::vector<std::string> original_data = doc.GetColumn<std::string>(column_name);
