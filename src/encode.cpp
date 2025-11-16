@@ -8,7 +8,7 @@
 #include <vector>
 
 // 辅助函数：将二进制数据写入文件
-void write_binary(const std::string &path, const std::vector<uint8_t> &data)
+void writeBinary(const std::string &path, const std::vector<uint8_t> &data)
 {
     std::ofstream ofs(path, std::ios::binary);
     if (!ofs)
@@ -51,13 +51,13 @@ int main()
         std::vector<std::string> column_data = doc.GetColumn<std::string>(column_id);
 
         // 编码流程
-        std::vector<uint8_t> lz_encoded = LZ.encode(column_data);
-        std::vector<uint8_t> crc_encoded = CRC.encode(lz_encoded);
+        std::vector<uint8_t> lz_encoded = LZ.Encode(column_data);
+        std::vector<uint8_t> crc_encoded = CRC.Encode(lz_encoded);
 
         // 保存二进制数据到单独文件
         const std::string bin_filename = fmt::format("col_{}.bin", column_id);
         const std::string bin_path = bin_dir + bin_filename;
-        write_binary(bin_path, crc_encoded);
+        writeBinary(bin_path, crc_encoded);
 
         // 在JSON中记录映射关系
         json_config["columns"][column_name] = bin_filename;

@@ -5,3 +5,5 @@ build/
 .cache/
 data/task1.json
 *.bin
+cmake-build-debug
+.idea/

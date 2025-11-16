@@ -18,7 +18,7 @@ public:
         _lookahead_buffer_size = std::min(lookahead_buffer_size, 18);
     }
 
-    std::vector<uint8_t> encode(const std::vector<std::string> &input)
+    std::vector<uint8_t> Encode(const std::vector<std::string> &input)
     {
         std::vector<uint8_t> output;
 
@@ -94,7 +94,7 @@ public:
         return output;
     }
 
-    std::vector<std::string> decode(const std::vector<uint8_t> &input)
+    std::vector<std::string> Decode(const std::vector<uint8_t> &input)
     {
         std::string concatenated;
         size_t pos = 0;
@@ -185,7 +185,7 @@ public:
     }
 
     // 编码：输入原始数据，返回带CRC校验的数据
-    std::vector<uint8_t> encode(const std::vector<uint8_t> &input) const
+    std::vector<uint8_t> Encode(const std::vector<uint8_t> &input) const
     {
         std::vector<uint8_t> output;
         if (input.empty())
@@ -204,7 +204,7 @@ public:
             // 复制数据块
             output.insert(output.end(), data + pos, data + pos + current_len);
             // 计算并附加CRC
-            output.push_back(calculate_crc(data + pos, current_len));
+            output.push_back(CalculateCRC(data + pos, current_len));
             pos += current_len;
         }
 
@@ -212,7 +212,7 @@ public:
     }
 
     // 解码：输入带CRC的数据，验证通过返回原始数据，失败返回空
-    std::vector<uint8_t> decode(const std::vector<uint8_t> &input) const
+    std::vector<uint8_t> Decode(const std::vector<uint8_t> &input) const
     {
         std::vector<uint8_t> output;
         if (input.empty())
@@ -233,7 +233,7 @@ public:
             uint8_t received_crc = data[pos + current_data_len];
 
             // 验证CRC
-            uint8_t calculated_crc = calculate_crc(data + pos, current_data_len);
+            uint8_t calculated_crc = CalculateCRC(data + pos, current_data_len);
             if (calculated_crc != received_crc)
             {
                 return {}; // CRC校验失败
@@ -252,7 +252,7 @@ private:
     size_t _m_block_size;  // 分块大小
 
     // 实时计算8位CRC（无表法）
-    uint8_t calculate_crc(const uint8_t *data, size_t len) const
+    uint8_t CalculateCRC(const uint8_t *data, size_t len) const
     {
         uint8_t crc = 0x00;
         for (size_t i = 0; i < len; ++i)
